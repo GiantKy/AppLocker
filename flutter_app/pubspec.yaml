@@ -1,0 +1,45 @@
+name: smart_locker
+description: Ứng dụng Tủ Thông Minh - Smart Locker Management System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+  provider: ^6.1.1
+  flutter_animate: ^4.3.0
+  lottie: ^2.7.0
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  cupertino_icons: ^1.0.6
+  pin_code_fields: ^8.0.1
+  shimmer: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: false
+  ios: false
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icons/app_icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#6C63FF"

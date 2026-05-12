@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # ===== Backend API =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart_locker_backend
+    restart: unless-stopped
+    ports:
+      - "3500:3000"   # Host 3500 → Container 3000 (tránh xung đột port)
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DB_PATH=/app/data/smart_locker.db
+    volumes:
+      - locker_data:/app/data
+    networks:
+      - smart_locker_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ===== Flutter Web Frontend =====
+  frontend:
+    build:
+      context: ./flutter_app
+      dockerfile: Dockerfile
+    container_name: smart_locker_frontend
+    restart: unless-stopped
+    ports:
+      - "8888:80"   # Host 8888 → Container 80
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - smart_locker_network
+
+# ===== Volumes =====
+volumes:
+  locker_data:
+    driver: local
+
+# ===== Networks =====
+networks:
+  smart_locker_network:
+    driver: bridge
