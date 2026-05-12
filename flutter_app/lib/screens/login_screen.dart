@@ -6,8 +6,10 @@ import 'home_screen.dart';
 // ============================================================
 //  Credentials — đổi ở đây nếu cần thay username/password
 // ============================================================
-const String _kUsername = 'admin';
-const String _kPassword = 'admin';
+const Map<String, Map<String, String>> _kAccounts = {
+  'admin': {'password': 'admin', 'role': 'admin'},
+  'user':  {'password': 'user',  'role': 'user'},
+};
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -75,14 +77,16 @@ class _LoginScreenState extends State<LoginScreen>
     // Giả lập delay xác thực
     await Future.delayed(const Duration(milliseconds: 800));
 
-    final user = _userCtrl.text.trim();
-    final pass = _passCtrl.text.trim();
+    final inputUser = _userCtrl.text.trim();
+    final inputPass = _passCtrl.text.trim();
 
-    if (user == _kUsername && pass == _kPassword) {
+    final account = _kAccounts[inputUser];
+    if (account != null && account['password'] == inputPass) {
+      final isAdmin = account['role'] == 'admin';
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, animation, __) => const HomeScreen(),
+          pageBuilder: (_, animation, __) => HomeScreen(isAdmin: isAdmin),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },

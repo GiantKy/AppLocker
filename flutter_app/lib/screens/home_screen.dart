@@ -7,7 +7,8 @@ import 'receive_screen.dart';
 import 'manage_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isAdmin;
+  const HomeScreen({super.key, required this.isAdmin});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -94,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildHeader() {
+    final isAdmin = widget.isAdmin;
     return Row(
       children: [
         Container(
@@ -118,11 +120,34 @@ class _HomeScreenState extends State<HomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('TỦ THÔNG MINH', style: AppTextStyles.displayMedium),
-              Text(
-                'Smart Locker Management',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary.withOpacity(0.8),
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Smart Locker Management',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.primary.withOpacity(0.8),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: isAdmin
+                          ? AppGradients.manageGradient
+                          : AppGradients.receiveGradient,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      isAdmin ? 'ADMIN' : 'USER',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -247,12 +272,16 @@ class _HomeScreenState extends State<HomeScreen>
         const SizedBox(height: 12),
         _FeatureCard(
           title: 'Quản Lý',
-          subtitle: 'Xem toàn bộ đơn hàng & tủ',
+          subtitle: widget.isAdmin
+              ? 'Xem toàn bộ đơn hàng & mã PIN'
+              : 'Xem trạng thái đơn hàng',
           icon: Icons.admin_panel_settings_rounded,
           gradient: AppGradients.manageGradient,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ManageScreen()),
+            MaterialPageRoute(
+              builder: (_) => ManageScreen(isAdmin: widget.isAdmin),
+            ),
           ),
         ),
       ],

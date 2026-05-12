@@ -4,6 +4,7 @@ class LockerModel {
   final String status;
   final String size;
   final String createdAt;
+  final String pinCode;
 
   LockerModel({
     required this.id,
@@ -11,6 +12,7 @@ class LockerModel {
     required this.status,
     required this.size,
     required this.createdAt,
+    this.pinCode = '',
   });
 
   factory LockerModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class LockerModel {
       status: json['status'] ?? 'available',
       size: json['size'] ?? 'medium',
       createdAt: json['created_at'] ?? '',
+      pinCode: json['pin_code'] ?? '',
     );
   }
 

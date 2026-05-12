@@ -5,7 +5,8 @@ import '../models/locker_model.dart';
 import '../theme/app_theme.dart';
 
 class ManageScreen extends StatefulWidget {
-  const ManageScreen({super.key});
+  final bool isAdmin;
+  const ManageScreen({super.key, required this.isAdmin});
 
   @override
   State<ManageScreen> createState() => _ManageScreenState();
@@ -82,6 +83,27 @@ class _ManageScreenState extends State<ManageScreen>
       ),
       body: Column(
         children: [
+          if (!widget.isAdmin)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: AppColors.accentOrange.withOpacity(0.12),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline,
+                      size: 16, color: AppColors.accentOrange),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Một số thông tin đã được ẩn đối với tài khoản User',
+                    style: TextStyle(
+                      color: AppColors.accentOrange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           _buildSearchBar(),
           Expanded(
             child: TabBarView(
@@ -181,7 +203,8 @@ class _ManageScreenState extends State<ManageScreen>
           padding: const EdgeInsets.all(AppDimens.paddingMD),
           itemCount: list.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, i) => _PackageCard(package: list[i]),
+          itemBuilder: (context, i) =>
+              _PackageCard(package: list[i], isAdmin: widget.isAdmin),
         );
       },
     );
@@ -227,7 +250,8 @@ class _ManageScreenState extends State<ManageScreen>
                   childAspectRatio: 0.85,
                 ),
                 itemCount: lockers.length,
-                itemBuilder: (context, i) => _LockerDetailTile(locker: lockers[i]),
+                itemBuilder: (context, i) =>
+                    _LockerDetailTile(locker: lockers[i], isAdmin: widget.isAdmin),
               ),
             ),
           ],
@@ -237,10 +261,18 @@ class _ManageScreenState extends State<ManageScreen>
   }
 }
 
-class _PackageCard extends StatelessWidget {
+class _PackageCard extends StatefulWidget {
   final PackageModel package;
+  final bool isAdmin;
 
-  const _PackageCard({required this.package});
+  const _PackageCard({required this.package, required this.isAdmin});
+
+  @override
+  State<_PackageCard> createState() => _PackageCardState();
+}
+
+class _PackageCardState extends State<_PackageCard> {
+  bool _pinRevealed = false;
 
   String _formatDate(String dateStr) {
     try {
@@ -252,8 +284,16 @@ class _PackageCard extends StatelessWidget {
     }
   }
 
+  String _maskPhone(String phone) {
+    if (phone.length < 4) return '****';
+    return phone.substring(0, phone.length - 4) + '****';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final pkg = widget.package;
+    final isAdmin = widget.isAdmin;
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -264,13 +304,13 @@ class _PackageCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  gradient: package.isStored
+                  gradient: pkg.isStored
                       ? AppGradients.sendGradient
                       : AppGradients.receiveGradient,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  package.lockerNumber,
+                  pkg.lockerNumber,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -279,10 +319,10 @@ class _PackageCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              StatusBadge(status: package.status),
+              StatusBadge(status: pkg.status),
               const Spacer(),
               Text(
-                _formatDate(package.sentAt),
+                _formatDate(pkg.sentAt),
                 style: AppTextStyles.labelMedium,
               ),
             ],
@@ -290,25 +330,29 @@ class _PackageCard extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(color: AppColors.divider, height: 1),
           const SizedBox(height: 12),
+
+          // Tên người gửi
           Row(
             children: [
-              const Icon(Icons.person_rounded,
-                  size: 16, color: AppColors.primary),
+              const Icon(Icons.person_rounded, size: 16, color: AppColors.primary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  package.senderName,
+                  pkg.senderName,
                   style: AppTextStyles.bodyLarge,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Icon(Icons.phone_rounded,
-                  size: 14, color: AppColors.textMuted),
+              const Icon(Icons.phone_rounded, size: 14, color: AppColors.textMuted),
               const SizedBox(width: 4),
-              Text(package.senderPhone, style: AppTextStyles.bodyMedium),
+              Text(
+                isAdmin ? pkg.senderPhone : _maskPhone(pkg.senderPhone),
+                style: AppTextStyles.bodyMedium,
+              ),
             ],
           ),
-          if (package.receiverName.isNotEmpty) ...[
+
+          if (pkg.receiverName.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(
               children: [
@@ -316,13 +360,14 @@ class _PackageCard extends StatelessWidget {
                     size: 16, color: AppColors.accentGreen),
                 const SizedBox(width: 6),
                 Text(
-                  'Nhận: ${package.receiverName}',
+                  'Nhận: ${pkg.receiverName}',
                   style: AppTextStyles.bodyMedium,
                 ),
               ],
             ),
           ],
-          if (package.description.isNotEmpty) ...[
+
+          if (isAdmin && pkg.description.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(
               children: [
@@ -331,9 +376,90 @@ class _PackageCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    package.description,
+                    pkg.description,
                     style: AppTextStyles.labelMedium,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // Admin: hiển thị mã PIN nếu đang lưu hàng
+          if (isAdmin && pkg.isStored) ...[
+            const SizedBox(height: 10),
+            const Divider(color: AppColors.divider, height: 1),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.pin_rounded,
+                    size: 16, color: AppColors.accentOrange),
+                const SizedBox(width: 6),
+                const Text(
+                  'Mã PIN:',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _pinRevealed
+                      ? Text(
+                          pkg.pinCode.isNotEmpty ? pkg.pinCode : 'N/A',
+                          key: const ValueKey('pin-shown'),
+                          style: const TextStyle(
+                            color: AppColors.accentOrange,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                          ),
+                        )
+                      : const Text(
+                          '●●●●',
+                          key: ValueKey('pin-hidden'),
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 16,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => setState(() => _pinRevealed = !_pinRevealed),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentOrange.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: AppColors.accentOrange.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _pinRevealed
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          size: 14,
+                          color: AppColors.accentOrange,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _pinRevealed ? 'Ẩn' : 'Xem PIN',
+                          style: const TextStyle(
+                            color: AppColors.accentOrange,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -347,8 +473,9 @@ class _PackageCard extends StatelessWidget {
 
 class _LockerDetailTile extends StatelessWidget {
   final LockerModel locker;
+  final bool isAdmin;
 
-  const _LockerDetailTile({required this.locker});
+  const _LockerDetailTile({required this.locker, required this.isAdmin});
 
   @override
   Widget build(BuildContext context) {
@@ -398,6 +525,26 @@ class _LockerDetailTile extends StatelessWidget {
               letterSpacing: 1,
             ),
           ),
+          // Admin: hiển thị PIN trực tiếp trên tile nếu ô đang có hàng
+          if (isAdmin && !isAvailable && locker.pinCode.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.accentOrange.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                locker.pinCode,
+                style: const TextStyle(
+                  color: AppColors.accentOrange,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
