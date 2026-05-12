@@ -53,8 +53,8 @@ docker-compose up --build -d
 ```
 
 ### Truy Cập
-- **Web App:** http://localhost:8080
-- **API:** http://localhost:3000
+- **Web App:** http://localhost:8888
+- **API:** http://localhost:3500
 
 ### Dừng Hệ Thống
 ```bash
@@ -71,7 +71,7 @@ docker-compose down -v
 cd backend
 npm install
 node server.js
-# API: http://localhost:3000
+# API: http://localhost:3500
 ```
 
 ### Flutter App (Mobile)
